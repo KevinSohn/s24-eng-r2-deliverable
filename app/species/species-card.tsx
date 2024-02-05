@@ -1,4 +1,5 @@
 "use client";
+import DeleteSpeciesDialog from "./delete-species-dialog";
 import ShowSpeciesDialog from "./show-species-dialog";
 /*
 Note: "use client" is a Next.js App Router directive that tells React to render the component as
@@ -13,9 +14,19 @@ can cause errors with matching props and state in child components if the list o
 */
 import type { Database } from "@/lib/schema";
 import Image from "next/image";
+import EditSpeciesDialog from "./edit-species-dialog";
 type Species = Database["public"]["Tables"]["species"]["Row"];
+// type Profiles = Database["public"]["Tables"]["profiles"]["Row"];
 
-export default function SpeciesCard({ species }: { species: Species }) {
+export default function SpeciesCard({
+  species,
+  displayName,
+  userId,
+}: {
+  species: Species;
+  displayName: string;
+  userId: string;
+}) {
   return (
     <div className="m-4 w-72 min-w-72 flex-none rounded border-2 p-3 shadow">
       {species.image && (
@@ -27,7 +38,10 @@ export default function SpeciesCard({ species }: { species: Species }) {
       <h4 className="text-lg font-light italic">{species.common_name}</h4>
       <p>{species.description ? species.description.slice(0, 150).trim() + "..." : ""}</p>
       {/* Replace the button with the detailed view dialog. */}
+      <h6 className="text-sm font-extralight">Contributor: {displayName}</h6>
       <ShowSpeciesDialog key={species.id} {...species}></ShowSpeciesDialog>
+      {species.author == userId ? <EditSpeciesDialog species={species} userId={userId}></EditSpeciesDialog> : <></>}
+      {species.author == userId ? <DeleteSpeciesDialog species={species}></DeleteSpeciesDialog> : <></>}
     </div>
   );
 }
