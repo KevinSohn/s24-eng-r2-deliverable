@@ -20,12 +20,8 @@ export default function ShowSpeciesDialog(species: Species) {
       </DialogTrigger>
       <DialogContent className="max-h-screen overflow-y-auto sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>
-            <h3 className="mt-3 text-4xl font-semibold">{species.common_name}</h3>
-          </DialogTitle>
-          <DialogDescription>
-            <h4 className="text-2xl font-light italic">{species.scientific_name}</h4>
-          </DialogDescription>
+          <DialogTitle className="mt-3 text-4xl font-semibold">{species.common_name}</DialogTitle>
+          <DialogDescription className="text-2xl font-light italic">{species.scientific_name}</DialogDescription>
           <DialogDescription className="text-xl">
             <b>Kingdom: </b>
             {species.kingdom}

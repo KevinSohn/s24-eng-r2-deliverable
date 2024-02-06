@@ -34,8 +34,8 @@ export default function SpeciesCard({
           <Image src={species.image} alt={species.scientific_name} fill style={{ objectFit: "cover" }} />
         </div>
       )}
-      <h3 className="mt-3 text-2xl font-semibold">{species.scientific_name}</h3>
-      <h4 className="text-lg font-light italic">{species.common_name}</h4>
+      <p className="mt-3 text-2xl font-semibold">{species.scientific_name}</p>
+      <p className="text-lg font-light italic">{species.common_name}</p>
       <p>{species.description ? species.description.slice(0, 150).trim() + "..." : ""}</p>
       {/* Replace the button with the detailed view dialog. */}
       <h6 className="text-sm font-extralight">Contributor: {displayName}</h6>
