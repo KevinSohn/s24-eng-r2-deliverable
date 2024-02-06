@@ -72,8 +72,8 @@ const defaultValues: Partial<FormData> = {
   kingdom: "Animalia",
   total_population: null,
   endangered: false,
-  image: null,
-  description: null,
+  image: "",
+  description: "",
 };
 
 export default function AddSpeciesDialog({ userId }: { userId: string }) {
@@ -147,6 +147,7 @@ export default function AddSpeciesDialog({ userId }: { userId: string }) {
             Add a new species here. Click &quot;Add Species&quot; below when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
+
         <Form {...form}>
           <form onSubmit={(e: BaseSyntheticEvent) => void form.handleSubmit(onSubmit)(e)}>
             <div className="grid w-full items-center gap-4">

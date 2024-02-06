@@ -4,6 +4,7 @@ import { env } from "@/env.mjs";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { cache } from "react";
+import "server-only";
 import { type Database } from "./schema";
 
 export const createServerSupabaseClient = cache(() => {

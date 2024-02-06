@@ -14,7 +14,7 @@ import type { Database } from "@/lib/schema";
 type Profiles = Database["public"]["Tables"]["profiles"]["Row"];
 // type Profiles = Database["public"]["Tables"]["profiles"]["Row"];
 
-export default function ProfilesCard({ profiles }: { profiles: Profiles }) {
+export default function UserCard({ profiles }: { profiles: Profiles }) {
   return (
     <div className="m-4 w-72 min-w-72 flex-none rounded border-2 p-3 shadow">
       <h3 className="mt-3 text-2xl font-semibold">{profiles.display_name}</h3>
