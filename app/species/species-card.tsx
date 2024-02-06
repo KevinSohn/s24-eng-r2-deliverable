@@ -18,15 +18,7 @@ import EditSpeciesDialog from "./edit-species-dialog";
 type Species = Database["public"]["Tables"]["species"]["Row"];
 // type Profiles = Database["public"]["Tables"]["profiles"]["Row"];
 
-export default function SpeciesCard({
-  species,
-  displayName,
-  userId,
-}: {
-  species: Species;
-  displayName: string;
-  userId: string;
-}) {
+export default function SpeciesCard({ species, userId }: { species: Species; userId: string }) {
   return (
     <div className="m-4 w-72 min-w-72 flex-none rounded border-2 p-3 shadow">
       {species.image && (
@@ -38,7 +30,6 @@ export default function SpeciesCard({
       <h4 className="text-lg font-light italic">{species.common_name}</h4>
       <p>{species.description ? species.description.slice(0, 150).trim() + "..." : ""}</p>
       {/* Replace the button with the detailed view dialog. */}
-      <h6 className="text-sm font-extralight">Contributor: {displayName}</h6>
       <ShowSpeciesDialog key={species.id} {...species}></ShowSpeciesDialog>
       {species.author == userId ? <EditSpeciesDialog species={species} userId={userId}></EditSpeciesDialog> : <></>}
       {species.author == userId ? <DeleteSpeciesDialog species={species}></DeleteSpeciesDialog> : <></>}

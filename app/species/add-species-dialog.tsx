@@ -18,9 +18,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { createBrowserSupabaseClient } from "@/lib/client-utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Separator } from "@radix-ui/react-dropdown-menu";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type BaseSyntheticEvent } from "react";
+import { useState, type BaseSyntheticEvent } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -58,14 +57,7 @@ const speciesSchema = z.object({
     .transform((val) => (!val || val.trim() === "" ? null : val.trim())),
 });
 
-const inputSchema = z.object({
-  animalName: z.string().min(2, {
-    message: "Animal name must be at least 2 characters.",
-  }),
-});
-
 type FormData = z.infer<typeof speciesSchema>;
-type FormData2 = z.infer<typeof inputSchema>;
 
 // Default values for the form fields.
 /* Because the react-hook-form (RHF) used here is a controlled form (not an uncontrolled form),
@@ -80,8 +72,8 @@ const defaultValues: Partial<FormData> = {
   kingdom: "Animalia",
   total_population: null,
   endangered: false,
-  image: "",
-  description: "",
+  image: null,
+  description: null,
 };
 
 export default function AddSpeciesDialog({ userId }: { userId: string }) {
@@ -89,8 +81,6 @@ export default function AddSpeciesDialog({ userId }: { userId: string }) {
 
   // Control open/closed state of the dialog
   const [open, setOpen] = useState<boolean>(false);
-  const [description, setDescription] = useState("");
-  const [img, setImg] = useState("");
 
   // Instantiate form functionality with React Hook Form, passing in the Zod schema (for validation) and default values
   const form = useForm<FormData>({
@@ -98,18 +88,6 @@ export default function AddSpeciesDialog({ userId }: { userId: string }) {
     defaultValues,
     mode: "onChange",
   });
-
-  const form2 = useForm<FormData2>({
-    resolver: zodResolver(speciesSchema),
-  });
-
-  useEffect(() => {
-    form.setValue("description", description);
-  }, [description, form]);
-
-  useEffect(() => {
-    form.setValue("image", "https:" + img);
-  }, [img, form]);
 
   const onSubmit = async (input: FormData) => {
     // The `input` prop contains data that has already been processed by zod. We can now use it in a supabase query
@@ -154,55 +132,6 @@ export default function AddSpeciesDialog({ userId }: { userId: string }) {
     });
   };
 
-  async function onSubmit2(formData: z.infer<typeof inputSchema>) {
-    const e = await (await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${formData.animalName}`)).json();
-    console.log(e);
-
-    try {
-      console.log(typeof e);
-      if (e.title === "Not found.") {
-        toast({
-          title: "There are no Wikipedia articles that match your entry:",
-          description: (
-            <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-              <code className="text-white">{JSON.stringify(e, null, 2)}</code>
-            </pre>
-          ),
-        });
-      } else {
-        setDescription(e.extract);
-      }
-    } catch (error) {
-      let errorMessage = "Failed to do something exceptional";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      console.log(errorMessage);
-    }
-    const f = await (await fetch(`https://en.wikipedia.org/api/rest_v1/page/media-list/${formData.animalName}`)).json();
-
-    try {
-      if (f.title === "Not found.") {
-        toast({
-          title: "There are no Wikipedia articles that match your entry:",
-          description: (
-            <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-              <code className="text-white">{JSON.stringify(e, null, 2)}</code>
-            </pre>
-          ),
-        });
-      } else {
-        setImg(f.items[0].srcset[0].src);
-      }
-    } catch (error) {
-      let errorMessage = "Failed to do something exceptional";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      console.log(errorMessage);
-    }
-  }
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -218,32 +147,6 @@ export default function AddSpeciesDialog({ userId }: { userId: string }) {
             Add a new species here. Click &quot;Add Species&quot; below when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
-        <Form {...form2}>
-          <form onSubmit={(e: BaseSyntheticEvent) => void form2.handleSubmit(onSubmit2)(e)}>
-            <div className="flex w-full items-center gap-4">
-              <div className="w-full">
-                <FormField
-                  control={form2.control}
-                  name="animalName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Search for your animal on Wikipedia</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Cavia porcellus" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="mt-8">
-                <Button type="submit">Search</Button>
-              </div>
-            </div>
-          </form>
-        </Form>
-        <Separator className="my-2" />
-
         <Form {...form}>
           <form onSubmit={(e: BaseSyntheticEvent) => void form.handleSubmit(onSubmit)(e)}>
             <div className="grid w-full items-center gap-4">
