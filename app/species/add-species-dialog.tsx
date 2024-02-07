@@ -19,7 +19,7 @@ import { toast } from "@/components/ui/use-toast";
 import { createBrowserSupabaseClient } from "@/lib/client-utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState, type BaseSyntheticEvent } from "react";
+import { useEffect, useState, type BaseSyntheticEvent } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -56,8 +56,52 @@ const speciesSchema = z.object({
     // Transform empty string or only whitespace input to null before form submission, and trim whitespace otherwise
     .transform((val) => (!val || val.trim() === "" ? null : val.trim())),
 });
+const FormSchema = z.object({
+  wikiSearch: z.string().min(2, {
+    message: "Query must be at least 2 characters.",
+  }),
+});
 
 type FormData = z.infer<typeof speciesSchema>;
+
+interface imageList {
+  items: imageObject[];
+  revision: string;
+  tid: string;
+}
+
+interface imageObject {
+  leadImage: boolean;
+  section_id: number;
+  showInGallery: boolean;
+  srcset: srcSet[];
+  title: string;
+  type: string;
+}
+
+interface srcSet {
+  scale: string;
+  src: string;
+}
+
+interface wikipedia {
+  content_urls: object;
+  description: string;
+  description_source: string;
+  dir: string;
+  displaytitle: string;
+  extract: string;
+  extract_html: string;
+  lang: string;
+  namespace: object;
+  pageid: number;
+  revision: string;
+  tid: string;
+  title: string;
+  titles: object;
+  type: string;
+  wikibase_item: string;
+}
 
 // Default values for the form fields.
 /* Because the react-hook-form (RHF) used here is a controlled form (not an uncontrolled form),
@@ -81,6 +125,8 @@ export default function AddSpeciesDialog({ userId }: { userId: string }) {
 
   // Control open/closed state of the dialog
   const [open, setOpen] = useState<boolean>(false);
+  const [description, setDescription] = useState("");
+  const [img, setImg] = useState("");
 
   // Instantiate form functionality with React Hook Form, passing in the Zod schema (for validation) and default values
   const form = useForm<FormData>({
@@ -88,6 +134,49 @@ export default function AddSpeciesDialog({ userId }: { userId: string }) {
     defaultValues,
     mode: "onChange",
   });
+  const wikiForm = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      wikiSearch: "",
+    },
+  });
+
+  async function onWikiSubmit(formData: z.infer<typeof FormSchema>) {
+    // const lol = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${data.wikiSearch}`)
+    //   .then((e) => e.json())
+    //   .then((e) => {
+    //     return e;
+    //   })
+    //   .catch((error) => {
+    //     console.log(error);
+    //   });
+
+    const wikiExtract = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${formData.wikiSearch}`)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(response.statusText);
+        }
+        return (await response.json()) as wikipedia;
+      })
+      .then((e) => {
+        return e.extract;
+      });
+
+    setDescription(wikiExtract);
+
+    const wikiImage = await fetch(`https://en.wikipedia.org/api/rest_v1/page/media-list/${formData.wikiSearch}`)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(response.statusText);
+        }
+        return (await response.json()) as imageList;
+      })
+      .then((e) => {
+        return e.items;
+      });
+    console.log(wikiImage[0]?.srcset[0]?.src ?? null);
+    setImg(wikiImage[0]?.srcset[0]?.src ?? "");
+  }
 
   const onSubmit = async (input: FormData) => {
     // The `input` prop contains data that has already been processed by zod. We can now use it in a supabase query
@@ -132,6 +221,14 @@ export default function AddSpeciesDialog({ userId }: { userId: string }) {
     });
   };
 
+  useEffect(() => {
+    form.setValue("description", description);
+  }, [description, form]);
+
+  useEffect(() => {
+    form.setValue("image", "https:" + img);
+  }, [img, form]);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -147,6 +244,28 @@ export default function AddSpeciesDialog({ userId }: { userId: string }) {
             Add a new species here. Click &quot;Add Species&quot; below when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
+
+        <Form {...wikiForm}>
+          <form
+            onSubmit={(e: BaseSyntheticEvent) => void wikiForm.handleSubmit(onWikiSubmit)(e)}
+            className="space-y- mt-5 flex  flex-row justify-center"
+          >
+            <FormField
+              control={wikiForm.control}
+              name="wikiSearch"
+              render={({ field }) => (
+                <FormItem className="mr-3 flex grow">
+                  <FormControl>
+                    <Input placeholder="Search Wikipedia for an organism" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <Button className="grow-0" type="submit">
+              Search
+            </Button>
+          </form>
+        </Form>
 
         <Form {...form}>
           <form onSubmit={(e: BaseSyntheticEvent) => void form.handleSubmit(onSubmit)(e)}>
