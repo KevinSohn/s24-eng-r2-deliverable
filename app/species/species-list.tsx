@@ -6,6 +6,7 @@ import type { Database } from "@/lib/schema";
 import { useEffect, useState } from "react";
 import AddSpeciesDialog from "./add-species-dialog";
 import FilterSpeciesDialog from "./filter-species";
+import SearchSpeciesDialog from "./search-species";
 import SortSpeciesDialog from "./sort-species-dialog";
 import SpeciesCard from "./species-card";
 
@@ -26,6 +27,7 @@ export default function SpeciesListings({ sessionId, species }: { sessionId: str
   const [sort, setSort] = useState(0);
   const [filter, setFilter] = useState(0);
   const [sorted, setSorted] = useState(species);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     if (sort === 1) {
@@ -62,7 +64,6 @@ export default function SpeciesListings({ sessionId, species }: { sessionId: str
   }, [sort, species]);
 
   useEffect(() => {
-    console.log(filter);
     if (filter === 1) {
       setSorted(species?.filter((e) => e.kingdom === "Animalia") ?? null);
     }
@@ -83,14 +84,26 @@ export default function SpeciesListings({ sessionId, species }: { sessionId: str
     }
   }, [filter, species]);
 
+  useEffect(() => {
+    setSorted(
+      species?.filter(
+        (e) =>
+          e.description?.includes(search) ?? e.scientific_name?.includes(search) ?? e.common_name?.includes(search),
+      ) ?? null,
+    );
+  }, [search, species]);
+
   return (
     <>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
         <TypographyH2>Species List</TypographyH2>
         <div>
-          <AddSpeciesDialog userId={sessionId} />
-          <SortSpeciesDialog handleSort={setSort} />
-          <FilterSpeciesDialog handleFilter={setFilter} />
+          <div>
+            <AddSpeciesDialog userId={sessionId} />
+            <SortSpeciesDialog handleSort={setSort} />
+            <FilterSpeciesDialog handleFilter={setFilter} />
+          </div>
+          <SearchSpeciesDialog handleSearch={setSearch} />
         </div>
       </div>
       <Separator className="my-4" />
