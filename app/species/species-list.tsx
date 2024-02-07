@@ -5,6 +5,7 @@ import { TypographyH2 } from "@/components/ui/typography";
 import type { Database } from "@/lib/schema";
 import { useEffect, useState } from "react";
 import AddSpeciesDialog from "./add-species-dialog";
+import FilterSpeciesDialog from "./filter-species";
 import SortSpeciesDialog from "./sort-species-dialog";
 import SpeciesCard from "./species-card";
 
@@ -23,6 +24,7 @@ interface Species {
 
 export default function SpeciesListings({ sessionId, species }: { sessionId: string; species: Species[] | null }) {
   const [sort, setSort] = useState(0);
+  const [filter, setFilter] = useState(0);
   const [sorted, setSorted] = useState(species);
 
   useEffect(() => {
@@ -59,6 +61,28 @@ export default function SpeciesListings({ sessionId, species }: { sessionId: str
     }
   }, [sort, species]);
 
+  useEffect(() => {
+    console.log(filter);
+    if (filter === 1) {
+      setSorted(species?.filter((e) => e.kingdom === "Animalia") ?? null);
+    }
+    if (filter === 2) {
+      setSorted(species?.filter((e) => e.kingdom === "Plantae") ?? null);
+    }
+    if (filter === 3) {
+      setSorted(species?.filter((e) => e.kingdom === "Fungi") ?? null);
+    }
+    if (filter === 4) {
+      setSorted(species?.filter((e) => e.kingdom === "Protista") ?? null);
+    }
+    if (filter === 5) {
+      setSorted(species?.filter((e) => e.kingdom === "Archaea") ?? null);
+    }
+    if (filter === 6) {
+      setSorted(species?.filter((e) => e.kingdom === "Bacteria") ?? null);
+    }
+  }, [filter, species]);
+
   return (
     <>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
@@ -66,6 +90,7 @@ export default function SpeciesListings({ sessionId, species }: { sessionId: str
         <div>
           <AddSpeciesDialog userId={sessionId} />
           <SortSpeciesDialog handleSort={setSort} />
+          <FilterSpeciesDialog handleFilter={setFilter} />
         </div>
       </div>
       <Separator className="my-4" />
